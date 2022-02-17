@@ -435,6 +435,23 @@ class AlertRules:
         # filter to remove empty strings
         return "_".join(filter(None, group_name_parts))
 
+    @classmethod
+    def _multi_suffix_glob(
+        cls, dir_path: Path, suffixes: List[str], recursive: bool = True
+    ) -> list:
+        """Helper function for getting all files in a directory that have a matching suffix.
+
+        Args:
+            dir_path: path to the directory to glob from.
+            suffixes: list of suffixes to include in the glob (items should begin with a period).
+            recursive: a flag indicating whether a glob is recursive (nested) or not.
+
+        Returns:
+            List of files in `dir_path` that have one of the suffixes specified in `suffixes`.
+        """
+        all_files_in_dir = dir_path.glob("**/*" if recursive else "*")
+        return list(filter(lambda f: f.is_file() and f.suffix in suffixes, all_files_in_dir))
+
     def _from_dir(self, dir_path: Path, recursive: bool) -> List[dict]:
         """Read all rule files in a directory.
 
@@ -453,8 +470,7 @@ class AlertRules:
         alert_groups = []  # type: List[dict]
 
         # Gather all alerts into a list of groups
-        paths = dir_path.glob("**/*.rule" if recursive else "*.rule")
-        for file_path in filter(Path.is_file, paths):
+        for file_path in self._multi_suffix_glob(dir_path, [".rule", ".rules"], recursive):
             alert_groups_from_file = self._from_file(dir_path, file_path)
             if alert_groups_from_file:
                 logger.debug("Reading alert rule from %s", file_path)
@@ -1095,7 +1111,7 @@ class PromqlTransformer:
             return expression
         args = [str(self.path)]
         args.extend(
-            ['--label-matcher {}="{}"'.format(key, value) for key, value in topology.items()]
+            ["--label-matcher={}={}".format(key, value) for key, value in topology.items()]
         )
 
         args.extend(["{}".format(expression)])
@@ -1104,8 +1120,6 @@ class PromqlTransformer:
             return self._exec(args)
         except Exception as e:
             logger.debug('Applying the expression failed: "{}", falling back to the original', e)
-            raise e
-
             return expression
 
     def _get_transformer_path(self) -> Optional[Path]:
@@ -1123,6 +1137,6 @@ class PromqlTransformer:
         return None
 
     def _exec(self, cmd):
-        result = subprocess.run(" ".join(cmd), check=False, stdout=subprocess.PIPE, shell=True)
+        result = subprocess.run(cmd, check=False, stdout=subprocess.PIPE)
         output = result.stdout.decode("utf-8").strip()
         return output
