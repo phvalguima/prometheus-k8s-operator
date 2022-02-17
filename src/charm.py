@@ -69,8 +69,8 @@ class PrometheusCharm(CharmBase):
         self.remote_write_provider = PrometheusRemoteWriteProvider(
             self,
             relation_name=DEFAULT_REMOTE_WRITE_RELATION_NAME,
-            endpoint_address=external_url.hostname,
-            endpoint_port=external_url.port,
+            endpoint_address=external_url.hostname or "",
+            endpoint_port=external_url.port or self._port,
             endpoint_schema=external_url.scheme,
             endpoint_path=f"{external_url.path}/api/v1/write",
         )
