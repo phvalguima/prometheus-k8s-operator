@@ -204,7 +204,11 @@ class PrometheusCharm(CharmBase):
             "--web.console.libraries=/usr/share/prometheus/console_libraries",
         ]
 
-        args.append(f"--web.external-url={self._external_url}")
+        external_url = self._external_url
+        args.append(f"--web.external-url={external_url}")
+
+        if path := urlparse(external_url).path:
+            args.append(f"--web.route-prefix={path}")
 
         if self.model.get_relation(DEFAULT_REMOTE_WRITE_RELATION_NAME):
             args.append("--enable-feature=remote-write-receiver")
