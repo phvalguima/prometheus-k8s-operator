@@ -336,6 +336,12 @@ class PrometheusCharm(CharmBase):
             job["honor_labels"] = True
             prometheus_config["scrape_configs"].append(job)  # type: ignore
 
+        if self.config["kubernetes_sd"]:
+            sd_pod = None
+            with open("templates/kubernetes-sd-pod.yaml") as f:
+                sd_pod = yaml.safe_load(f)
+            prometheus_config["scrape_configs"].append(sd_pod[0])
+
         return yaml.dump(prometheus_config)
 
     @property

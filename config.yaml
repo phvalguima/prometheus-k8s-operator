@@ -37,3 +37,9 @@ options:
       How frequently rules will be evaluated.
     type: string
     default: 1m
+  kubernetes_sd:
+    description: |
+      Enables kubernetes service discovery feature in prometheus.
+      Accepted values: "pod" - renders pod-level service discovery
+    type: string
+    default: "pod"
