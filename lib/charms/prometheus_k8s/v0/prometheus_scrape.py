@@ -175,6 +175,7 @@ supported in a `MetricsEndpointProvider` job specification are:
 - `label_limit`
 - `label_name_length_limit`
 - `label_value_length_limit`
+- `kubernetes_sd_configs`
 
 ## Consumer Library Usage
 
@@ -346,6 +347,7 @@ ALLOWED_KEYS = {
     "label_limit",
     "label_name_length_limit",
     "label_value_lenght_limit",
+    "kubernetes_sd_configs",
 }
 DEFAULT_JOB = {
     "metrics_path": "/metrics",
@@ -1296,6 +1298,11 @@ class MetricsEndpointConsumer(Object):
         relabel_configs = job.get("relabel_configs", [])
         relabel_configs.append(instance_relabel_config)
         labeled_job["relabel_configs"] = relabel_configs
+
+        # Set kubernetes_sd_configs role
+        if "kubernetes_sd_configs" in job:
+            k8s_role = [{"role": job["kubernetes_sd_configs"]}]
+            labeled_job["kubernetes_sd_configs"] = k8s_role
 
         return labeled_job
 
